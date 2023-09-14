@@ -1,0 +1,4 @@
+opencv-python==4.8.0
+threaded==4.1.0
+djitellopy==2.5.0
+paho-mqtt==1.6.1
