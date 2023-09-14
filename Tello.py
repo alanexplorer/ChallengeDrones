@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
 	arucoDict, arucoParams = initialize_aruco() # Inicializa os parâmetros dos IDs
 
-	time.sleep(8)
+	time.sleep(8) # 8 sec
 
 	#tello.takeoff()
 	#tello.send_rc_control(0,0,0,0)
