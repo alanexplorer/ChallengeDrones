@@ -10,3 +10,5 @@
 python3 -m venv venv
 source venv/bin/activate
 pip install -r versioning/pip_requirements.txt
+
+test
