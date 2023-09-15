@@ -6,7 +6,10 @@ from djitellopy import Tello
 from imutils.perspective import order_points
 import keyboard
 from math import sin, cos, sqrt, atan2, pi
-
+# ==================================
+# ======== Internal Modules ========
+from teleop import TelloTeleop
+# ==================================
 ARUCO_SQUARE_SIZE = 0.177800
 
 class TelloExplorer (Thread):
@@ -28,16 +31,20 @@ class TelloExplorer (Thread):
                 return
         
         self.imageProcessing = AraucoImageProcessing(self)
+        if (not self.imageProcessing.is_alive()):
+            self.imageProcessing.start()
+        
+        if (not self.ghostDrone):
+            self.tteleop = TelloTeleop()
+            self.tteleop.drone = drone
+            self.tteleop.start()
 
         while True:
-            if (not self.imageProcessing.is_alive()):
-                self.imageProcessing.start()
+            if keyboard.is_pressed("f4"):
+               print(f'[{self.CLASS_NAME}] Killing Thread!')
+               break
 
-            #if keyboard.is_pressed("esc"):
-            #    print(f'[{self.CLASS_NAME}] Killing Thread!')
-            #    break
-
-            time.sleep(0.1)
+            time.sleep(0.01)
 
     def alignTello(self, ID, pose):
         #TODO
@@ -77,7 +84,11 @@ class AraucoImageProcessing (Thread):
 
     def aruco_detect(self, frameImage) -> tuple:
         corners, ids, _ = cv2.aruco.detectMarkers(frameImage, self.arucoDict, parameters=self.arucoParams)
-        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, ARUCO_SQUARE_SIZE, self.CAMERA_MATRIX, self.DISTORTION_COEFFICIENTS)
+        try:
+            rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, ARUCO_SQUARE_SIZE, self.CAMERA_MATRIX, self.DISTORTION_COEFFICIENTS)
+        except:
+            print(f'[{self.CLASS_NAME}] Camera Calibration Error!')
+            rvecs, tvecs = None, None
         poses = self.get_pose_coord_aruco(rvecs, tvecs)
         grayFrameImg = cv2.cvtColor(frameImage, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = cv2.aruco.detectMarkers(grayFrameImg, self.arucoDict, parameters=self.arucoParams) # Detect ArUco IDs
@@ -100,11 +111,13 @@ class AraucoImageProcessing (Thread):
     def get_pose_coord_aruco(self, rvecs, tvecs):
 
         poses = []
+        if (rvecs is None) or (tvecs is None):
+            return None
+        
         for i in range(rvecs.size):
             yaw = -1 * atan2(tvecs[0][0][0], tvecs[0][0][2])
             p = [rvecs[0], rvecs[1], yaw]
             poses.append(p)
-
         return poses
 
     def get_aruco_markers(self, corners, ids, target_id = None) -> tuple:
@@ -146,7 +159,7 @@ class AraucoImageProcessing (Thread):
         while True:
             # Breaking Thread if mainThread was killed
             if (not self.TelloExplorer.is_alive()):
-                print(f'[{self.CLASS_NAME}] Killing Main Thread!')
+                print(f'[{self.CLASS_NAME}] Killed by Main Thread!')
                 break
 
             # Getting Current Frame
@@ -173,22 +186,15 @@ class AraucoImageProcessing (Thread):
                 print("ordered corners", all_ordered_corners)
                 print("center points", all_center_points)
                 print("poses:", poses)
+                print('\n\n')
             except Exception as e:
                 print(e)
 
-
-            
-
-            # if ids is not None: # If identified any ID
-            #     if corners is not None: # And identified their corners
-            #         for (marker_corner, marker_id) in zip(corners, ids):
-            #             corners = marker_corner.reshape((4, 2))
-            #             (topLeft, topRight, bottomRight, bottomLeft) = corners
             time.sleep(1)
 
 if __name__ == "__main__":
 
-    GHOST_DRONE = False
+    GHOST_DRONE = True
 
     if (not GHOST_DRONE):
         drone = Tello()

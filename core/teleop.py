@@ -9,6 +9,8 @@ class TelloTeleop (Thread):
     def __init__(self) -> None:
         super().__init__()
         self.drone = None
+
+        self.enable = False
         
     def run(self, drone: Tello = None):
         drone = self.drone
@@ -22,16 +24,24 @@ class TelloTeleop (Thread):
 
         while(True):
             time.sleep(0.01)
+            print('teste')
             if keyboard.is_pressed("space"):
                 drone.emergency()
                 print(f'[{self.CLASS_NAME}] Emergency pressed!')
             if keyboard.is_pressed("enter"):
                 drone.land()
                 print(f'[{self.CLASS_NAME}] Land Button pressed!')
-            if keyboard.is_pressed("esc"):
+            if (keyboard.is_pressed("esc")) or (keyboard.is_pressed("f4")):
                 drone.end()
                 print(f'[{self.CLASS_NAME}] Drone End Tello Object!')
                 return
+
+            if keyboard.is_pressed("t"):
+                self.enable = not self.enable
+                if self.enable:
+                    print(f'[{self.CLASS_NAME}] Teleop Enabled!')
+                else:
+                    print(f'[{self.CLASS_NAME}] Teleop Disabled!')
 
             foward_backward_vel = 0
             if keyboard.is_pressed("down"):
@@ -61,12 +71,13 @@ class TelloTeleop (Thread):
                 if (not drone.is_flying):
                     drone.takeoff()
 
-            drone.send_rc_control(
-                left_right_velocity=left_right_vel,
-                forward_backward_velocity=foward_backward_vel,
-                yaw_velocity=yaw_vel,
-                up_down_velocity = up_down_vel
-                )
+            if self.enable:
+                drone.send_rc_control(
+                    left_right_velocity=left_right_vel,
+                    forward_backward_velocity=foward_backward_vel,
+                    yaw_velocity=yaw_vel,
+                    up_down_velocity = up_down_vel
+                    )
 
 
 if __name__ == "__main__":
