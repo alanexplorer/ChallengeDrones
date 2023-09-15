@@ -7,21 +7,18 @@ import keyboard
 class TelloTeleop (Thread):
     CLASS_NAME = 'TTeleop'
     def __init__(self) -> None:
+        super().__init__()
         self.drone = None
-
-    def start(self):
-        if self.drone is None:
-            print(f'[{self.CLASS_NAME}] Drone is None object!')
-            return
-        if (not self.drone.is_flying):
-            print(f'[{self.CLASS_NAME}] Drone is not flying!')
-            return
-        
-        self.run()
-        return
         
     def run(self, drone: Tello = None):
         drone = self.drone
+
+        if drone is None:
+            print(f'[{self.CLASS_NAME}] Drone is None object!')
+            return
+        if (not drone.is_flying):
+            print(f'[{self.CLASS_NAME}] Drone is not flying!')
+            return
 
         while(True):
             time.sleep(0.01)
@@ -60,12 +57,6 @@ class TelloTeleop (Thread):
             if keyboard.is_pressed("ctrl"):
                 up_down_vel += 10 # yaw +
 
-
-            print(f"fb: {foward_backward_vel},\
-                lr: {left_right_vel},\
-                yaw: {yaw_vel},\
-                updwn: {up_down_vel}")
-
             drone.send_rc_control(
                 left_right_velocity=left_right_vel,
                 forward_backward_velocity=foward_backward_vel,
@@ -78,7 +69,14 @@ if __name__ == "__main__":
     tteleop = TelloTeleop()
 
     drone = Tello()
-    # ...  drone init
+    drone.LOGGER.disabled = True
+    drone.connect()
+    drone.takeoff()
 
+    # Initializing Threading
     tteleop.drone = drone
     tteleop.start()
+
+    while True:
+        print('teste')
+        time.sleep(1)
