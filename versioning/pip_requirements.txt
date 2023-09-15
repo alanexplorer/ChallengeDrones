@@ -1,4 +1,10 @@
-opencv-python
-threaded==4.1.0
+av==10.0.0
 djitellopy==2.5.0
+imutils==0.5.4
+keyboard==0.13.5
+numpy==1.25.2
+opencv-contrib-python==4.8.0.76
+opencv-python==4.8.0.76
 paho-mqtt==1.6.1
+Pillow==10.0.0
+scipy==1.11.2
