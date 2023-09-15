@@ -5,6 +5,9 @@ import cv2
 from djitellopy import Tello
 from imutils.perspective import order_points
 import keyboard
+from math import sin, cos, sqrt, atan2, pi
+
+ARUCO_SQUARE_SIZE = 0.177800
 
 class TelloExplorer (Thread):
     CLASS_NAME = 'TExplorer'
@@ -30,9 +33,9 @@ class TelloExplorer (Thread):
             if (not self.imageProcessing.is_alive()):
                 self.imageProcessing.start()
 
-            if keyboard.is_pressed("esc"):
-                print(f'[{self.CLASS_NAME}] Killing Thread!')
-                break
+            #if keyboard.is_pressed("esc"):
+            #    print(f'[{self.CLASS_NAME}] Killing Thread!')
+            #    break
 
             time.sleep(0.1)
 
@@ -57,9 +60,11 @@ class AraucoImageProcessing (Thread):
 
     def aruco_detect(self, frameImage) -> tuple:
         corners, ids, _ = cv2.aruco.detectMarkers(frameImage, self.arucoDict, parameters=self.arucoParams)
+        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, ARUCO_SQUARE_SIZE, self.CAMERA_MATRIX, self.DISTORTION_COEFFICIENTS)
+        poses = self.get_pose_coord_aruco(rvecs, tvecs)
         grayFrameImg = cv2.cvtColor(frameImage, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = cv2.aruco.detectMarkers(grayFrameImg, self.arucoDict, parameters=self.arucoParams) # Detect ArUco IDs
-        return corners, ids, _
+        return corners, ids, poses, _
 
     def find_center_point(self, corners):
         """
@@ -74,6 +79,17 @@ class AraucoImageProcessing (Thread):
         center_y = (corners[0][1] + corners[2][1])//2
 
         return center_x, center_y
+
+    def get_pose_coord_aruco(self, rvecs, tvecs):
+
+        poses = []
+        for i in range(rvecs.size):
+            yaw = -1 * atan2(tvecs[0][0][0], tvecs[0][0][2])
+            p = [rvecs[0], rvecs[1], yaw]
+            poses.append(p)
+
+        print(p)
+        return p
 
     def get_aruco_markers(self, corners, ids, target_id = None) -> tuple:
         all_ordered_corners = []
@@ -122,7 +138,10 @@ class AraucoImageProcessing (Thread):
                 if self.TelloExplorer.ghostDrone:
                     ret, frameImg = vidcap.read()
                 else:
+                    start = time.time()
                     frameImg = drone.get_frame_read().frame
+                    end = time.time()
+                    print("Elapsed Time Thread: ", end-start)
             except:
                 print(f'[{self.CLASS_NAME}] Frame Read Error!')
 
@@ -131,7 +150,7 @@ class AraucoImageProcessing (Thread):
                 print(f'[{self.CLASS_NAME}] First Frame was read!')
 
             try:
-                corners, ids, _ = self.aruco_detect(frameImg)
+                corners, ids, poses, _ = self.aruco_detect(frameImg)
                 all_corners, all_ids, all_ordered_corners, all_center_points = self.get_aruco_markers(corners, ids)
                 print("corners:", all_corners)
                 print("ids:", all_ids)
@@ -153,12 +172,13 @@ class AraucoImageProcessing (Thread):
 
 if __name__ == "__main__":
 
-    GHOST_DRONE = True
+    GHOST_DRONE = False
 
     if (not GHOST_DRONE):
         drone = Tello()
         drone.LOGGER.disabled = True
         drone.connect()
+        drone.streamon()
         drone.takeoff()
     else:
         drone = None
@@ -168,3 +188,5 @@ if __name__ == "__main__":
     DroneExplorer.drone = drone
 
     DroneExplorer.start()
+
+    time.sleep(10)
