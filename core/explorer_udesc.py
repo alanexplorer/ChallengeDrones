@@ -88,8 +88,7 @@ class AraucoImageProcessing (Thread):
             p = [rvecs[0], rvecs[1], yaw]
             poses.append(p)
 
-        print(p)
-        return p
+        return poses
 
     def get_aruco_markers(self, corners, ids, target_id = None) -> tuple:
         all_ordered_corners = []
@@ -156,7 +155,7 @@ class AraucoImageProcessing (Thread):
                 print("ids:", all_ids)
                 print("ordered corners", all_ordered_corners)
                 print("center points", all_center_points)
-                print()
+                print("poses:", poses)
             except Exception as e:
                 print(e)
 
