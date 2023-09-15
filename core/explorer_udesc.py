@@ -39,6 +39,20 @@ class TelloExplorer (Thread):
 
             time.sleep(0.1)
 
+    def alignTello(self, ID, pose):
+        #TODO
+        pass
+
+    def telloStopped(self,):
+        pass
+        #Gian ja implementou essa rotna
+        #IF tello is stopped:
+        #   return True
+        #else:
+        #   return False
+
+    
+
 class AraucoImageProcessing (Thread):
     CLASS_NAME = 'AIP'
     def __init__(self, TelloExplorer: TelloExplorer) -> None:
@@ -51,6 +65,9 @@ class AraucoImageProcessing (Thread):
 
         self.TelloExplorer = TelloExplorer
         self.drone = self.TelloExplorer.drone
+
+        self.CAMERA_MATRIX = None
+        self.DISTORTION_COEFFICIENTS = None
 
         self.aruco_init()
 
