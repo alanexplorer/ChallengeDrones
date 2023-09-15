@@ -35,27 +35,31 @@ class TelloTeleop (Thread):
 
             foward_backward_vel = 0
             if keyboard.is_pressed("down"):
-                foward_backward_vel += 10 # Down
+                foward_backward_vel += -50 # Down
             if keyboard.is_pressed("up"):
-                foward_backward_vel += -10 # Up
+                foward_backward_vel += 50 # Up
 
             left_right_vel = 0
             if keyboard.is_pressed("right"):
-                left_right_vel += 10 # Right
+                left_right_vel += 50 # Right
             if keyboard.is_pressed("left"):
-                left_right_vel += -10 # Left
+                left_right_vel += -50 # Left
 
             yaw_vel = 0
             if keyboard.is_pressed("q"):
-                yaw_vel += 10 # yaw +
+                yaw_vel += -50 # yaw +
             if keyboard.is_pressed("e"):
-                yaw_vel += -10 # yaw +
+                yaw_vel += 50 # yaw +
 
             up_down_vel = 0
             if keyboard.is_pressed("shift"):
-                up_down_vel += -10 # yaw +
+                up_down_vel += 50 # yaw +
             if keyboard.is_pressed("ctrl"):
-                up_down_vel += 10 # yaw +
+                up_down_vel += -50 # yaw +
+
+            if keyboard.is_pressed("alt"):
+                if (not drone.is_flying):
+                    drone.takeoff()
 
             drone.send_rc_control(
                 left_right_velocity=left_right_vel,
