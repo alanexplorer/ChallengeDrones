@@ -190,7 +190,7 @@ if __name__ == "__main__":
 			ID, distance, aruco_x, frame_x = result # Separa as variáveis
 			identified = ID
 			print(result)
-			searched = 5 # Id vuscado
+			searched = 4 # Id vuscado
 			searched_group = id_to_group.get(searched) # grupo buscado = grupo do id buscado
 
 			if searched not in group_p: # Ainda não deve pousar
